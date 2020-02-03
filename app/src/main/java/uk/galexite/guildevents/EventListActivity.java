@@ -11,6 +11,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -18,23 +20,29 @@ import com.google.android.material.snackbar.Snackbar;
 
 import java.util.List;
 
-import uk.galexite.guildevents.dummy.DummyContent;
+import uk.galexite.guildevents.data.entity.Event;
+import uk.galexite.guildevents.data.viewmodel.EventViewModel;
 
 /**
  * An activity representing a list of Items. This activity
  * has different presentations for handset and tablet-size devices. On
  * handsets, the activity presents a list of items, which when touched,
- * lead to a {@link ItemDetailActivity} representing
+ * lead to a {@link EventDetailActivity} representing
  * item details. On tablets, the activity presents the list of items and
  * item details side-by-side using two vertical panes.
  */
-public class ItemListActivity extends AppCompatActivity {
+public class EventListActivity extends AppCompatActivity {
 
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet
      * device.
      */
     private boolean mTwoPane;
+
+    /**
+     * The view model.
+     */
+    private EventViewModel mEventViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,45 +76,54 @@ public class ItemListActivity extends AppCompatActivity {
     }
 
     private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
-        recyclerView.setAdapter(new SimpleItemRecyclerViewAdapter(this, DummyContent.ITEMS, mTwoPane));
+        final EventListAdapter adapter = new EventListAdapter(this, mTwoPane);
+        recyclerView.setAdapter(adapter);
+
+        // Set up our view model.
+        mEventViewModel = ViewModelProviders.of(this).get(EventViewModel.class);
+        mEventViewModel.getAllEvents().observe(this, new Observer<List<Event>>() {
+            @Override
+            public void onChanged(List<Event> events) {
+                adapter.setEvents(events);
+            }
+        });
     }
 
-    public static class SimpleItemRecyclerViewAdapter
-            extends RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder> {
+    public static class EventListAdapter extends RecyclerView.Adapter<EventListAdapter.ViewHolder> {
 
-        private final ItemListActivity mParentActivity;
-        private final List<DummyContent.DummyItem> mValues;
+        private final EventListActivity mParentActivity;
         private final boolean mTwoPane;
         private final View.OnClickListener mOnClickListener = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                DummyContent.DummyItem item = (DummyContent.DummyItem) view.getTag();
+                Event event = (Event) view.getTag();
                 if (mTwoPane) {
                     Bundle arguments = new Bundle();
-                    arguments.putString(ItemDetailFragment.ARG_ITEM_ID, item.id);
-                    ItemDetailFragment fragment = new ItemDetailFragment();
+                    arguments.putInt(EventDetailFragment.ARG_ITEM_ID, event.getId());
+                    EventDetailFragment fragment = new EventDetailFragment();
                     fragment.setArguments(arguments);
                     mParentActivity.getSupportFragmentManager().beginTransaction()
                             .replace(R.id.item_detail_container, fragment)
                             .commit();
                 } else {
                     Context context = view.getContext();
-                    Intent intent = new Intent(context, ItemDetailActivity.class);
-                    intent.putExtra(ItemDetailFragment.ARG_ITEM_ID, item.id);
+                    Intent intent = new Intent(context, EventDetailActivity.class);
+                    intent.putExtra(EventDetailFragment.ARG_ITEM_ID, event.getId());
 
                     context.startActivity(intent);
                 }
             }
         };
 
-        SimpleItemRecyclerViewAdapter(ItemListActivity parent,
-                                      List<DummyContent.DummyItem> items,
-                                      boolean twoPane) {
-            mValues = items;
+        private List<Event> mEvents;
+
+        EventListAdapter(EventListActivity parent,
+                         boolean twoPane) {
             mParentActivity = parent;
             mTwoPane = twoPane;
         }
 
+        @NonNull
         @Override
         public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View view = LayoutInflater.from(parent.getContext())
@@ -116,16 +133,23 @@ public class ItemListActivity extends AppCompatActivity {
 
         @Override
         public void onBindViewHolder(final ViewHolder holder, int position) {
-            holder.mIdView.setText(mValues.get(position).id);
-            holder.mContentView.setText(mValues.get(position).content);
+            Event event = mEvents.get(position);
 
-            holder.itemView.setTag(mValues.get(position));
+            holder.mIdView.setText(event.getId());
+            holder.mContentView.setText(event.getName());
+
+            holder.itemView.setTag(event);
             holder.itemView.setOnClickListener(mOnClickListener);
+        }
+
+        void setEvents(List<Event> events) {
+            mEvents = events;
+            notifyDataSetChanged();
         }
 
         @Override
         public int getItemCount() {
-            return mValues.size();
+            return mEvents == null ? 0 : mEvents.size();
         }
 
         class ViewHolder extends RecyclerView.ViewHolder {
