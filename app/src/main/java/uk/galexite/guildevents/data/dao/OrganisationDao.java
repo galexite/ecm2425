@@ -8,6 +8,11 @@ import uk.galexite.guildevents.data.entity.Organisation;
 @Dao
 public interface OrganisationDao {
 
+    /**
+     * Add a new Organisation to the database.
+     *
+     * @param organisation the Organisation to add
+     */
     @Insert
     void insert(Organisation organisation);
 }

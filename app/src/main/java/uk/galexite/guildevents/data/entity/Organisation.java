@@ -22,10 +22,19 @@ public class Organisation {
         this.name = name;
     }
 
+    /**
+     * Gets the unique identifier for this organisation.
+     *
+     * @return an integer uniquely identifying this organisation on the Guild website
+     */
     public int getId() {
         return id;
     }
 
+    /**
+     * Gets the name of this organisation.
+     * @return the organisation's name
+     */
     public String getName() {
         return name;
     }
