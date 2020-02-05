@@ -11,7 +11,7 @@ import java.util.Date;
  * Based on:
  * https://developer.android.com/training/data-storage/room/referencing-data#type-converters
  */
-class Converters {
+public class Converters {
 
     /**
      * Creates a new Date object given a timestamp (Unix epoch).
