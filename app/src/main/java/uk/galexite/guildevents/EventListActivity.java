@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.lifecycle.Observer;
@@ -17,6 +18,11 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.List;
 
@@ -44,10 +50,55 @@ public class EventListActivity extends AppCompatActivity {
      */
     private EventViewModel mEventViewModel;
 
+    /**
+     * The Firebase child event listener, listens for updates to the Event list on the database.
+     */
+    private final ChildEventListener mEventChildEventListener = new ChildEventListener() {
+
+        // TODO: Room <=> Firebase
+
+        private void insertEvent(DataSnapshot dataSnapshot) {
+            Event event = dataSnapshot.getValue(Event.class);
+            if (dataSnapshot.getKey() != null)
+                event.setId(Integer.valueOf(dataSnapshot.getKey()));
+            mEventViewModel.insertEvent(event);
+        }
+
+        @Override
+        public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+            insertEvent(dataSnapshot);
+        }
+
+        @Override
+        public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+            insertEvent(dataSnapshot); // as we've set the database to replace upon conflict,
+            // just insert the new event again.
+        }
+
+        @Override
+        public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+
+        }
+
+        @Override
+        public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+        }
+
+        @Override
+        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+        }
+    };
+    /**
+     * A reference to the online Firebase database containing the scraped events.
+     */
+    private DatabaseReference mFirebaseDatabase;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_item_list);
+        setContentView(R.layout.activity_event_list);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -70,10 +121,15 @@ public class EventListActivity extends AppCompatActivity {
             mTwoPane = true;
         }
 
+        mFirebaseDatabase = FirebaseDatabase.getInstance().getReference();
+        mFirebaseDatabase.child("events").addChildEventListener(mEventChildEventListener);
+
+        // Set up the recycler view with our database.
         View recyclerView = findViewById(R.id.item_list);
         assert recyclerView != null;
         setupRecyclerView((RecyclerView) recyclerView);
     }
+
 
     private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
         final EventListAdapter adapter = new EventListAdapter(this, mTwoPane);
@@ -127,7 +183,7 @@ public class EventListActivity extends AppCompatActivity {
         @Override
         public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View view = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.item_list_content, parent, false);
+                    .inflate(R.layout.event_list_content, parent, false);
             return new ViewHolder(view);
         }
 
@@ -135,8 +191,9 @@ public class EventListActivity extends AppCompatActivity {
         public void onBindViewHolder(final ViewHolder holder, int position) {
             Event event = mEvents.get(position);
 
-            holder.mIdView.setText(event.getId());
-            holder.mContentView.setText(event.getName());
+            holder.mEventOrganiserName.setText(event.getOrganiserName());
+            holder.mEventName.setText(event.getName());
+            holder.mEventFromDate.setText(event.getFromDate());
 
             holder.itemView.setTag(event);
             holder.itemView.setOnClickListener(mOnClickListener);
@@ -153,13 +210,15 @@ public class EventListActivity extends AppCompatActivity {
         }
 
         class ViewHolder extends RecyclerView.ViewHolder {
-            final TextView mIdView;
-            final TextView mContentView;
+            final TextView mEventOrganiserName;
+            final TextView mEventName;
+            final TextView mEventFromDate;
 
             ViewHolder(View view) {
                 super(view);
-                mIdView = view.findViewById(R.id.id_text);
-                mContentView = view.findViewById(R.id.content);
+                mEventOrganiserName = view.findViewById(R.id.event_organiser_name);
+                mEventName = view.findViewById(R.id.event_name);
+                mEventFromDate = view.findViewById(R.id.event_from_date);
             }
         }
     }

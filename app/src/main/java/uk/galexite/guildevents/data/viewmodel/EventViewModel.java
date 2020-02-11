@@ -43,4 +43,13 @@ public class EventViewModel extends AndroidViewModel {
     public LiveData<Event> getEvent(int id) {
         return mRepository.getEvent(id);
     }
+
+    /**
+     * Inserts a new Event in to the repository.
+     *
+     * @param event the Event object to insert in to the repository
+     */
+    public void insertEvent(final Event event) {
+        mRepository.insertEvent(event);
+    }
 }

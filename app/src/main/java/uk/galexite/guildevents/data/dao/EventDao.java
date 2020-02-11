@@ -3,6 +3,7 @@ package uk.galexite.guildevents.data.dao;
 import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Insert;
+import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 
 import java.util.List;
@@ -17,14 +18,14 @@ public interface EventDao {
      *
      * @param event the Event to add
      */
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insert(Event event);
 
     /**
      * Get all Event objects stored in the database.
      * @return a {@link LiveData} container for the list of Event objects
      */
-    @Query("SELECT * from event ORDER BY date ASC")
+    @Query("SELECT * from event ORDER BY fromDate ASC")
     LiveData<List<Event>> getAllEvents();
 
     /**
@@ -32,7 +33,7 @@ public interface EventDao {
      *
      * @return a {@link LiveData} container for the list of Event objects
      */
-    @Query("SELECT * from event WHERE date > DATE('now')")
+    @Query("SELECT * from event WHERE fromDate > DATE('now')")
     LiveData<List<Event>> getAllEventsFromNow();
 
     /**

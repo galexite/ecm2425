@@ -1,6 +1,7 @@
 package uk.galexite.guildevents.data.repository;
 
 import android.app.Application;
+import android.os.AsyncTask;
 
 import androidx.lifecycle.LiveData;
 
@@ -40,5 +41,33 @@ public class EventRepository {
      */
     public LiveData<Event> getEvent(int id) {
         return mEventDao.getEvent(id);
+    }
+
+    /**
+     * Inserts a new event in to the database.
+     *
+     * @param event the Event object to insert in to the database
+     */
+    public void insertEvent(Event event) {
+        new InsertionAsyncTask(mEventDao).execute(event);
+    }
+
+    private static class InsertionAsyncTask extends AsyncTask<Event, Void, Void> {
+
+        /**
+         * The data access object to insert the new Event in to.
+         */
+        private final EventDao mEventDao;
+
+        private InsertionAsyncTask(EventDao mEventDao) {
+            this.mEventDao = mEventDao;
+        }
+
+        @Override
+        protected Void doInBackground(final Event... events) {
+            for (Event event : events)
+                mEventDao.insert(event);
+            return null;
+        }
     }
 }

@@ -2,7 +2,7 @@ package uk.galexite.guildevents.data;
 
 import androidx.room.TypeConverter;
 
-import java.util.Date;
+import java.sql.Timestamp;
 
 /**
  * A set of type converters used by Android Room to convert types it cannot handle in to those that
@@ -19,8 +19,8 @@ public class Converters {
      * @return a new Date at the time given by the timestamp
      */
     @TypeConverter
-    public static Date dateFromLongTimestamp(Long value) {
-        return value == null ? null : new Date(value);
+    public static Timestamp dateFromJDBCTimestamp(String value) {
+        return value == null ? null : Timestamp.valueOf(value);
     }
 
     /**
@@ -29,7 +29,7 @@ public class Converters {
      * @return the timestamp in seconds since the Unix epoch
      */
     @TypeConverter
-    public static Long longTimestampFromDate(Date date) {
-        return date == null ? null : date.getTime();
+    public static String longTimestampFromDate(Timestamp date) {
+        return date == null ? null : date.toString();
     }
 }
