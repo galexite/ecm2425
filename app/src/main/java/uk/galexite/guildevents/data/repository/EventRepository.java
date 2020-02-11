@@ -22,7 +22,7 @@ public class EventRepository {
     public EventRepository(Application application) {
         EventDatabase database = EventDatabase.getDatabase(application);
         mEventDao = database.eventDao();
-        mEvents = mEventDao.getAllEvents();
+        mEvents = mEventDao.getAllEventsFromNow();
     }
 
     /**
@@ -30,7 +30,7 @@ public class EventRepository {
      *
      * @return a LiveData container for the list of events
      */
-    public LiveData<List<Event>> getAllEvents() {
+    public LiveData<List<Event>> getAllEventsFromNow() {
         return mEvents;
     }
 

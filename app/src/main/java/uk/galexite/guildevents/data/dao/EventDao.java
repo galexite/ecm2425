@@ -21,12 +21,14 @@ public interface EventDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insert(Event event);
 
-    /**
-     * Get all Event objects stored in the database.
-     * @return a {@link LiveData} container for the list of Event objects
-     */
-    @Query("SELECT * from event ORDER BY fromDate ASC")
-    LiveData<List<Event>> getAllEvents();
+// --Commented out by Inspection START (2020-02-11 21:36):
+//    /**
+//     * Get all Event objects stored in the database.
+//     * @return a {@link LiveData} container for the list of Event objects
+//     */
+//    @Query("SELECT * from event ORDER BY fromDate ASC")
+//    LiveData<List<Event>> getAllEvents();
+// --Commented out by Inspection STOP (2020-02-11 21:36)
 
     /**
      * Get all Event objects stored in the database which have a start date in the future.

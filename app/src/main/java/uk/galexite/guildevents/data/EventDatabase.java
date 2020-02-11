@@ -5,14 +5,12 @@ import android.content.Context;
 import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
-import androidx.room.TypeConverters;
 
 import uk.galexite.guildevents.data.dao.EventDao;
 import uk.galexite.guildevents.data.entity.Event;
 import uk.galexite.guildevents.data.entity.Organisation;
 
 @Database(entities = {Event.class, Organisation.class}, version = 1, exportSchema = false)
-@TypeConverters({Converters.class})
 public abstract class EventDatabase extends RoomDatabase {
 
     private static EventDatabase INSTANCE;

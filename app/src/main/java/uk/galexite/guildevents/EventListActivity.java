@@ -25,16 +25,12 @@ import com.google.firebase.database.FirebaseDatabase;
 
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
-import java9.util.function.Predicate;
-import java9.util.stream.StreamSupport;
 import uk.galexite.guildevents.data.entity.Event;
 import uk.galexite.guildevents.data.viewmodel.EventViewModel;
-
-import static java9.util.stream.Collectors.toList;
 
 /**
  * An activity representing a list of Items. This activity
@@ -67,7 +63,7 @@ public class EventListActivity extends AppCompatActivity {
         private void insertEvent(DataSnapshot dataSnapshot) {
             Event event = dataSnapshot.getValue(Event.class);
             if (dataSnapshot.getKey() != null)
-                event.setId(Integer.valueOf(dataSnapshot.getKey()));
+                Objects.requireNonNull(event).setId(Integer.valueOf(dataSnapshot.getKey()));
             mEventViewModel.insertEvent(event);
         }
 
@@ -97,19 +93,6 @@ public class EventListActivity extends AppCompatActivity {
 
         }
     };
-    /**
-     * A reference to the online Firebase database containing the scraped events.
-     */
-    private DatabaseReference mFirebaseDatabase;
-
-    /**
-     * Predicate to ensure we are displaying events only in the future (or even better, events that
-     * will end in the future).
-     */
-    private Predicate<Event> eventPredicate = event ->
-            event.getToDate() == null || event.getToDate().isEmpty()
-                    ? Timestamp.valueOf(event.getFromDate()).after(new Date())
-                    : Timestamp.valueOf(event.getToDate()).after(new Date());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -121,13 +104,8 @@ public class EventListActivity extends AppCompatActivity {
         toolbar.setTitle(getTitle());
 
         FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+        fab.setOnClickListener(view -> Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                .setAction("Action", null).show());
 
         if (findViewById(R.id.item_detail_container) != null) {
             // The detail container view will be present only in the
@@ -137,7 +115,10 @@ public class EventListActivity extends AppCompatActivity {
             mTwoPane = true;
         }
 
-        mFirebaseDatabase = FirebaseDatabase.getInstance().getReference();
+        /**
+         * A reference to the online Firebase database containing the scraped events.
+         */
+        DatabaseReference mFirebaseDatabase = FirebaseDatabase.getInstance().getReference();
         mFirebaseDatabase.child("events").addChildEventListener(mEventChildEventListener);
 
         // Set up the recycler view with our database.
@@ -153,12 +134,7 @@ public class EventListActivity extends AppCompatActivity {
 
         // Set up our view model.
         mEventViewModel = ViewModelProviders.of(this).get(EventViewModel.class);
-        mEventViewModel.getAllEvents().observe(this,
-                events -> adapter.setEvents(StreamSupport.stream(events)
-                        .filter(eventPredicate)
-                        .collect(toList())
-                )
-        );
+        mEventViewModel.getAllEventsFromNow().observe(this, adapter::setEvents);
     }
 
     public static class EventListAdapter extends RecyclerView.Adapter<EventListAdapter.ViewHolder> {

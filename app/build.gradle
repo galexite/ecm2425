@@ -44,13 +44,10 @@ dependencies {
 
     // Lifecycle components
     implementation "android.arch.lifecycle:extensions:$rootProject.archLifecycleVersion"
-    annotationProcessor "android.arch.lifecycle:compiler:$rootProject.archLifecycleVersion"
+    implementation "androidx.lifecycle:lifecycle-common-java8:$rootProject.archLifecycleVersion"
 
     // Firebase Realtime Database
     implementation 'com.google.firebase:firebase-database:19.2.1'
-
-    // Java 9 streams support on Android < 24
-    implementation 'net.sourceforge.streamsupport:android-retrostreams:1.7.1'
 
     // Mockito
     testImplementation "org.mockito:mockito-core:2.28.2"

@@ -24,14 +24,14 @@ public class EventViewModel extends AndroidViewModel {
         super(application);
 
         mRepository = new EventRepository(application);
-        mEvents = mRepository.getAllEvents();
+        mEvents = mRepository.getAllEventsFromNow();
     }
 
     /**
      * Get all Events from the repository.
      * @return a {@link LiveData} container for the list of Event objects
      */
-    public LiveData<List<Event>> getAllEvents() {
+    public LiveData<List<Event>> getAllEventsFromNow() {
         return mEvents;
     }
 

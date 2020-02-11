@@ -1,8 +1,5 @@
 <resources>
     <string name="app_name">Guild Events</string>
     <string name="title_item_detail">Item Detail</string>
-    <string name="downloading_new_event_and_society_data">Downloading new event and society data</string>
-    <string name="updating_database">Updating database...</string>
-    <string name="description">Description</string>
     <string name="open_in_browser">Open in browser</string>
 </resources>

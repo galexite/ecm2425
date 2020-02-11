@@ -11,7 +11,6 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 
 import com.google.android.material.appbar.CollapsingToolbarLayout;
@@ -24,7 +23,10 @@ import uk.galexite.guildevents.data.viewmodel.EventViewModel;
  * This fragment is either contained in a {@link EventListActivity}
  * in two-pane mode (on tablets) or a {@link EventDetailActivity}
  * on handsets.
+ *
+ * Suppressing 'Weaker Access' because Fragments must be public.
  */
+@SuppressWarnings("WeakerAccess")
 public class EventDetailFragment extends Fragment {
     /**
      * The fragment argument representing the item ID that this fragment
@@ -33,28 +35,11 @@ public class EventDetailFragment extends Fragment {
     public static final String ARG_ITEM_ID = "item_id";
 
     /**
-     * The view model.
-     */
-    private EventViewModel mEventViewModel;
-
-    /**
-     * The app bar layout.
-     */
-    CollapsingToolbarLayout appBarLayout;
-    /**
-     * The description text view for the event.
-     */
-    TextView detailView;
-    /**
-     * The event this Fragment is detailing.
-     */
-    private Event mEvent;
-    /**
      * OnClickListener for the button the user can press to open the event in their web browser.
      * <p>
      * Uses an `ACTION_VIEW` {@link Intent} to open the web browser on the event's URL.
      */
-    private View.OnClickListener onOpenInBrowserClickListener = new View.OnClickListener() {
+    private final View.OnClickListener onOpenInBrowserClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             Uri uri = Uri.parse(mEvent.getUrl());
@@ -74,6 +59,23 @@ public class EventDetailFragment extends Fragment {
             startActivity(intent);
         }
     };
+    /**
+     * The view model.
+     */
+    @SuppressWarnings("FieldCanBeLocal")
+    private EventViewModel mEventViewModel;
+    /**
+     * The app bar layout.
+     */
+    private CollapsingToolbarLayout appBarLayout;
+    /**
+     * The event this Fragment is detailing.
+     */
+    private Event mEvent;
+    /**
+     * The description text view for the event.
+     */
+    private TextView detailView;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -95,12 +97,7 @@ public class EventDetailFragment extends Fragment {
             // arguments. In a real-world scenario, use a Loader
             // to load content from a content provider.
             int id = getArguments().getInt(ARG_ITEM_ID);
-            mEventViewModel.getEvent(id).observe(this, new Observer<Event>() {
-                @Override
-                public void onChanged(Event event) {
-                    setEvent(event);
-                }
-            });
+            mEventViewModel.getEvent(id).observe(this, this::setEvent);
 
             Activity activity = this.getActivity();
             assert activity != null;
@@ -109,7 +106,7 @@ public class EventDetailFragment extends Fragment {
         }
     }
 
-    public void setEvent(@NonNull Event event) {
+    private void setEvent(@NonNull Event event) {
         mEvent = event;
 
         if (appBarLayout != null) {
@@ -120,22 +117,6 @@ public class EventDetailFragment extends Fragment {
         if (detailView != null) {
             detailView.setText(event.getDescription());
         }
-    }
-
-    public void onOpenInBrowserButtonClick(View view) {
-        Uri uri = Uri.parse(mEvent.getUrl());
-
-        /* Sometimes, an event may link to an external source. We need to check and make sure if the
-           host is not already present before we go and add the Guild's domain name to the URI. */
-        if (uri.getScheme() == null || uri.getScheme().isEmpty()) {
-            uri = uri.buildUpon()
-                    .scheme("http")
-                    .authority("www.exeterguild.org")
-                    .build();
-        }
-
-        Intent intent = new Intent(uri.toString());
-        startActivity(intent);
     }
 
     @Override
