@@ -12,7 +12,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -24,10 +23,18 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
+import java9.util.function.Predicate;
+import java9.util.stream.StreamSupport;
 import uk.galexite.guildevents.data.entity.Event;
 import uk.galexite.guildevents.data.viewmodel.EventViewModel;
+
+import static java9.util.stream.Collectors.toList;
 
 /**
  * An activity representing a list of Items. This activity
@@ -95,6 +102,15 @@ public class EventListActivity extends AppCompatActivity {
      */
     private DatabaseReference mFirebaseDatabase;
 
+    /**
+     * Predicate to ensure we are displaying events only in the future (or even better, events that
+     * will end in the future).
+     */
+    private Predicate<Event> eventPredicate = event ->
+            event.getToDate() == null || event.getToDate().isEmpty()
+                    ? Timestamp.valueOf(event.getFromDate()).after(new Date())
+                    : Timestamp.valueOf(event.getToDate()).after(new Date());
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -137,15 +153,18 @@ public class EventListActivity extends AppCompatActivity {
 
         // Set up our view model.
         mEventViewModel = ViewModelProviders.of(this).get(EventViewModel.class);
-        mEventViewModel.getAllEvents().observe(this, new Observer<List<Event>>() {
-            @Override
-            public void onChanged(List<Event> events) {
-                adapter.setEvents(events);
-            }
-        });
+        mEventViewModel.getAllEvents().observe(this,
+                events -> adapter.setEvents(StreamSupport.stream(events)
+                        .filter(eventPredicate)
+                        .collect(toList())
+                )
+        );
     }
 
     public static class EventListAdapter extends RecyclerView.Adapter<EventListAdapter.ViewHolder> {
+
+        private final SimpleDateFormat simpleDateFormat =
+                new SimpleDateFormat("EEEE, d MMMM, h:mm aa", Locale.ENGLISH);
 
         private final EventListActivity mParentActivity;
         private final boolean mTwoPane;
@@ -193,7 +212,9 @@ public class EventListActivity extends AppCompatActivity {
 
             holder.mEventOrganiserName.setText(event.getOrganiserName());
             holder.mEventName.setText(event.getName());
-            holder.mEventFromDate.setText(event.getFromDate());
+            holder.mEventFromDate.setText(
+                    simpleDateFormat.format(Timestamp.valueOf(event.getFromDate()))
+            );
 
             holder.itemView.setTag(event);
             holder.itemView.setOnClickListener(mOnClickListener);

@@ -52,6 +52,9 @@ public class EventRepository {
         new InsertionAsyncTask(mEventDao).execute(event);
     }
 
+    /**
+     * The background AsyncTask to handle (slow) insertions in to the database.
+     */
     private static class InsertionAsyncTask extends AsyncTask<Event, Void, Void> {
 
         /**

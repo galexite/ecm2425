@@ -21,6 +21,10 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+    compileOptions {
+        sourceCompatibility = 1.8
+        targetCompatibility = 1.8
+    }
 }
 
 dependencies {
@@ -44,6 +48,9 @@ dependencies {
 
     // Firebase Realtime Database
     implementation 'com.google.firebase:firebase-database:19.2.1'
+
+    // Java 9 streams support on Android < 24
+    implementation 'net.sourceforge.streamsupport:android-retrostreams:1.7.1'
 
     // Mockito
     testImplementation "org.mockito:mockito-core:2.28.2"
