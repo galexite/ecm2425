@@ -35,7 +35,7 @@ public interface EventDao {
      *
      * @return a {@link LiveData} container for the list of Event objects
      */
-    @Query("SELECT * from event WHERE fromDate > DATE('now')")
+    @Query("SELECT * from event WHERE fromDate > CURRENT_TIMESTAMP")
     LiveData<List<Event>> getAllEventsFromNow();
 
     /**
