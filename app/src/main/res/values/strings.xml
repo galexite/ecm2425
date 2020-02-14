@@ -3,4 +3,5 @@
     <string name="title_item_detail">Event</string>
     <string name="open_in_browser">Open in browser</string>
     <string name="add_to_calendar">Add to calendar</string>
+    <string name="filter">Filter</string>
 </resources>

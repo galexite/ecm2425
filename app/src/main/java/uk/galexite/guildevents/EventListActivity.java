@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -15,8 +16,6 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -103,10 +102,6 @@ public class EventListActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         toolbar.setTitle(getTitle());
 
-        FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(view -> Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show());
-
         if (findViewById(R.id.item_detail_container) != null) {
             // The detail container view will be present only in the
             // large-screen layouts (res/values-w900dp).
@@ -137,6 +132,12 @@ public class EventListActivity extends AppCompatActivity {
         mEventViewModel.getAllEventsFromNow().observe(this, adapter::setEvents);
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.event_list, menu);
+        return true;
+    }
+
     public static class EventListAdapter extends RecyclerView.Adapter<EventListAdapter.ViewHolder> {
 
         private final SimpleDateFormat simpleDateFormat =
@@ -153,6 +154,7 @@ public class EventListActivity extends AppCompatActivity {
                     arguments.putInt(EventDetailFragment.ARG_ITEM_ID, event.getId());
                     EventDetailFragment fragment = new EventDetailFragment();
                     fragment.setArguments(arguments);
+                    fragment.setHasOptionsMenu(true);
                     mParentActivity.getSupportFragmentManager().beginTransaction()
                             .replace(R.id.item_detail_container, fragment)
                             .commit();

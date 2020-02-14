@@ -5,6 +5,9 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -33,32 +36,6 @@ public class EventDetailFragment extends Fragment {
      * represents.
      */
     public static final String ARG_ITEM_ID = "item_id";
-
-    /**
-     * OnClickListener for the button the user can press to open the event in their web browser.
-     * <p>
-     * Uses an `ACTION_VIEW` {@link Intent} to open the web browser on the event's URL.
-     */
-    private final View.OnClickListener onOpenInBrowserClickListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            Uri uri = Uri.parse(mEvent.getUrl());
-
-            /* Sometimes, an event may link to an external source. We need to check and make sure
-               if the scheme is not already present before we go and add the Guild's domain name to
-               the URI. */
-            if (uri.getScheme() == null || uri.getScheme().isEmpty()) {
-                uri = uri.buildUpon()
-                        .scheme("http")
-                        .authority("www.exeterguild.org")
-                        .build();
-            }
-
-            Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setData(uri);
-            startActivity(intent);
-        }
-    };
     /**
      * The view model.
      */
@@ -125,6 +102,36 @@ public class EventDetailFragment extends Fragment {
         if (dateRangeView != null) {
             dateRangeView.setText(mEvent.getFromDate());
         }
+    }
+
+    @Override
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.event_detail, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == R.id.open_in_browser) { // Open this event in the browser
+            Uri uri = Uri.parse(mEvent.getUrl());
+
+            /* Sometimes, an event may link to an external source. We need to check and make sure
+               if the scheme is not already present before we go and add the Guild's domain name to
+               the URI. */
+            if (uri.getScheme() == null || uri.getScheme().isEmpty()) {
+                uri = uri.buildUpon()
+                        .scheme("http")
+                        .authority("www.exeterguild.org")
+                        .build();
+            }
+
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setData(uri);
+            startActivity(intent);
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     @Override

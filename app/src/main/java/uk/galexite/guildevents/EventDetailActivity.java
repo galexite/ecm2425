@@ -47,6 +47,7 @@ public class EventDetailActivity extends AppCompatActivity {
                     getIntent().getIntExtra(EventDetailFragment.ARG_ITEM_ID, -1));
             EventDetailFragment fragment = new EventDetailFragment();
             fragment.setArguments(arguments);
+            fragment.setHasOptionsMenu(true); // needed to allow the fragment to set its own menus
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.item_detail_container, fragment)
                     .commit();
