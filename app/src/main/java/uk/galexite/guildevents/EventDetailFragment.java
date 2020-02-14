@@ -73,9 +73,14 @@ public class EventDetailFragment extends Fragment {
      */
     private Event mEvent;
     /**
+     * The name text view for the event.
+     */
+    private TextView nameView;
+    /**
      * The description text view for the event.
      */
     private TextView detailView;
+    private TextView dateRangeView;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -109,13 +114,16 @@ public class EventDetailFragment extends Fragment {
     private void setEvent(@NonNull Event event) {
         mEvent = event;
 
-        if (appBarLayout != null) {
-            appBarLayout.setTitle(event.getName());
+        if (nameView != null) {
+            nameView.setText(event.getName());
         }
 
-        // TODO: tech debt
         if (detailView != null) {
             detailView.setText(event.getDescription());
+        }
+
+        if (dateRangeView != null) {
+            dateRangeView.setText(mEvent.getFromDate());
         }
     }
 
@@ -124,12 +132,13 @@ public class EventDetailFragment extends Fragment {
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.event_detail, container, false);
 
-        // Show the dummy content as text in a TextView.
-        detailView = rootView.findViewById(R.id.item_detail);
+        nameView = rootView.findViewById(R.id.event_name);
+        detailView = rootView.findViewById(R.id.event_description);
+        dateRangeView = rootView.findViewById(R.id.date_range);
 
-        // Associate the 'Open in Browser' button with its OnClickListener.
-        rootView.findViewById(R.id.open_in_browser_button)
-                .setOnClickListener(onOpenInBrowserClickListener);
+//        // Associate the 'Open in Browser' button with its OnClickListener.
+//        rootView.findViewById(R.id.open_in_browser_button)
+//                .setOnClickListener(onOpenInBrowserClickListener);
 
         return rootView;
     }
