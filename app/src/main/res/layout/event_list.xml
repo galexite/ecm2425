@@ -1,11 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.recyclerview.widget.RecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/item_list"
-    android:name="uk.galexite.guildevents.ItemListFragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    app:layoutManager="LinearLayoutManager"
-    tools:context=".EventListActivity"
-    tools:listitem="@layout/event_list_content" />
+    android:orientation="vertical"
+    tools:context=".EventListActivity">
+
+    <include
+        layout="@layout/filter_by_spinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/item_list"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="100"
+        app:layoutManager="LinearLayoutManager"
+        tools:context="uk.galexite.guildevents.EventListActivity"
+        tools:listitem="@layout/event_list_content" />
+</LinearLayout>

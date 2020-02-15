@@ -1,5 +1,6 @@
 package uk.galexite.guildevents.data.entity;
 
+import androidx.annotation.NonNull;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
@@ -33,9 +34,21 @@ public class Organisation {
 
     /**
      * Gets the name of this organisation.
+     *
      * @return the organisation's name
      */
     public String getName() {
+        return name;
+    }
+
+    /**
+     * Build a String representing the Organisation by taking the organisation's name.
+     * <p>
+     * Used for the ArrayAdapter.
+     */
+    @NonNull
+    @Override
+    public String toString() {
         return name;
     }
 }

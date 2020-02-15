@@ -64,6 +64,7 @@ public class Event {
 
     /**
      * Gets the unique identifier for the event.
+     *
      * @return an integer uniquely identifying the event
      */
     public int getId() {
@@ -72,6 +73,7 @@ public class Event {
 
     /**
      * Gets the identifier for the Organisation who organised this event.
+     *
      * @return the primary key of the Organisation responsible for organising this event
      */
     public int getOrganiserId() {
@@ -93,6 +95,7 @@ public class Event {
 
     /**
      * Gets a String describing the location of the event.
+     *
      * @return the event's location
      */
     public String getLocation() {
@@ -130,19 +133,6 @@ public class Event {
         return url;
     }
 
-    /*
-     *
-     * SETTERS
-     *
-     * I won't be using these setters directly, but these will be used by Android Room and Firebase
-     * to build instances of the Event object.
-     *
-     */
-
-    public void setUrl(String url) {
-        this.url = url;
-    }
-
     /**
      * Gets the name of the event's organiser,
      *
@@ -152,10 +142,6 @@ public class Event {
         return organiserName;
     }
 
-    public void setOrganiserName(String organiserName) {
-        this.organiserName = organiserName;
-    }
-
     /**
      * Gets the date (if available) when the event ends.
      *
@@ -163,6 +149,22 @@ public class Event {
      */
     public String getToDate() {
         return toDate;
+    }
+
+    /**********************************************************************************************
+     * SETTERS
+     *
+     * I won't be using these setters directly, but these will be used by Android Room and Firebase
+     * to build instances of the Event object.
+     *
+     **********************************************************************************************/
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
+    public void setOrganiserName(String organiserName) {
+        this.organiserName = organiserName;
     }
 
     public void setToDate(String toDate) {

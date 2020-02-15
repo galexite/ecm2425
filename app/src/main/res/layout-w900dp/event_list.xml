@@ -16,14 +16,26 @@
     
     -->
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/item_list"
-        android:name="uk.galexite.guildevents.ItemListFragment"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/constraintLayout"
         android:layout_width="@dimen/item_width"
-        android:layout_height="match_parent"
-        app:layoutManager="LinearLayoutManager"
-        tools:context="uk.galexite.guildevents.EventListActivity"
-        tools:listitem="@layout/event_list_content" />
+        android:layout_height="match_parent">
+
+        <include layout="@layout/filter_by_spinner" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/item_list"
+            android:name="uk.galexite.guildevents.ItemListFragment"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:layoutManager="LinearLayoutManager"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/spinner_frame_layout"
+            tools:context="uk.galexite.guildevents.EventListActivity"
+            tools:listitem="@layout/event_list_content" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <FrameLayout
         android:id="@+id/item_detail_container"

@@ -7,9 +7,13 @@ import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
 import uk.galexite.guildevents.data.dao.EventDao;
+import uk.galexite.guildevents.data.dao.OrganisationDao;
 import uk.galexite.guildevents.data.entity.Event;
 import uk.galexite.guildevents.data.entity.Organisation;
 
+/**
+ * Singleton database wrapper which is automatically filled in by Room.
+ */
 @Database(entities = {Event.class, Organisation.class}, version = 1, exportSchema = false)
 public abstract class EventDatabase extends RoomDatabase {
 
@@ -37,7 +41,17 @@ public abstract class EventDatabase extends RoomDatabase {
     /**
      * Get a data access object for the Event type.
      *
-     * @return an EventDao for this database
+     * A data access object is an object-oriented facade for accessing the data stored in the
+     * database using the SQL query storied in the annotations in the DAO's definition.
+     *
+     * @return an {@link EventDao} for this database
      */
     public abstract EventDao eventDao();
+
+    /**
+     * Get a data access object for the Organisation type.
+     *
+     * @return an {@link OrganisationDao} for this database.
+     */
+    public abstract OrganisationDao organisationDao();
 }
