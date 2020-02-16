@@ -2,38 +2,35 @@ package uk.galexite.guildevents;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.firebase.database.ChildEventListener;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 
 import uk.galexite.guildevents.data.entity.Event;
 import uk.galexite.guildevents.data.entity.Organisation;
 import uk.galexite.guildevents.data.viewmodel.EventViewModel;
+import uk.galexite.guildevents.network.UpdateDatabaseAsyncTask;
 
 /**
  * An activity representing a list of Items. This activity
@@ -45,54 +42,16 @@ import uk.galexite.guildevents.data.viewmodel.EventViewModel;
  */
 public class EventListActivity extends AppCompatActivity {
 
+    public static final String TAG = "EventListActivity";
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet
      * device.
      */
     private boolean mTwoPane;
-
     /**
      * The view model.
      */
     private EventViewModel mEventViewModel;
-
-    /**
-     * The Firebase child event listener, listens for updates to the Event list on the database.
-     */
-    private final ChildEventListener mEventChildEventListener = new ChildEventListener() {
-
-        // TODO: Room <=> Firebase
-
-        private void insertEvent(DataSnapshot dataSnapshot) {
-            Event event = dataSnapshot.getValue(Event.class);
-            if (dataSnapshot.getKey() != null)
-                Objects.requireNonNull(event).setId(Integer.valueOf(dataSnapshot.getKey()));
-            mEventViewModel.insertEvent(event);
-        }
-
-        @Override
-        public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-            insertEvent(dataSnapshot);
-        }
-
-        @Override
-        public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-            insertEvent(dataSnapshot); // as we've set the database to replace upon conflict,
-            // just insert the new event again.
-        }
-
-        @Override
-        public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-        }
-
-        @Override
-        public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-        }
-
-        @Override
-        public void onCancelled(@NonNull DatabaseError databaseError) {
-        }
-    };
     /**
      * The adapter for the RecyclerView.
      */
@@ -109,7 +68,7 @@ public class EventListActivity extends AppCompatActivity {
             = new AdapterView.OnItemSelectedListener() {
         @Override
         public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-            if (id == 0) { // 'All organisations' was selected
+            if (position == 0) { // 'All organisations' was selected
                 // There should not be filter applied to the list of events, so clear it.
                 updateRecyclerView(null);
                 return;
@@ -145,12 +104,31 @@ public class EventListActivity extends AppCompatActivity {
             mTwoPane = true;
         }
 
-        // A reference to the online Firebase database containing the scraped events.
-        DatabaseReference mFirebaseDatabase = FirebaseDatabase.getInstance().getReference();
-        mFirebaseDatabase.child("events").addChildEventListener(mEventChildEventListener);
+        SharedPreferences sharedPreferences = getSharedPreferences(
+                getString(R.string.preference_file_key), Context.MODE_PRIVATE);
 
         // Set up our view model, which mediates between the Activity and the database code.
         mEventViewModel = ViewModelProviders.of(this).get(EventViewModel.class);
+
+        // Update the database (if required)
+        final Date lastUpdated = new Date(sharedPreferences.getLong(
+                getString(R.string.preference_last_updated), 0));
+        new UpdateDatabaseAsyncTask(lastUpdated, updated -> {
+            Log.d(TAG, "onCreate: UpdateDatabaseAsyncTask finished!");
+            if (updated != null) {
+                // Update our last modified time
+                sharedPreferences.edit()
+                        .putLong(getString(R.string.preference_last_updated), updated.getTime())
+                        .apply();
+
+                Log.d(TAG, "onCreate: successfully updated database: " + updated);
+            }
+
+            // Hide the progress bar
+            Log.d(TAG, "onCreate: hiding progress bar");
+            ProgressBar progressBar = findViewById(R.id.progress_bar);
+            progressBar.setVisibility(View.INVISIBLE);
+        }).execute(mEventViewModel.getRepository());
 
         // Populate the filter 'spinner' with the list of organisations in the database.
         Spinner spinner = findViewById(R.id.spinner);
@@ -175,6 +153,7 @@ public class EventListActivity extends AppCompatActivity {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
         spinner.setAdapter(adapter);
+        spinner.setOnItemSelectedListener(onOrganisationFilterSelectedListener);
 
         mEventViewModel.getAllOrganisations().observe(this, collection -> {
             adapter.clear();

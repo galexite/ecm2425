@@ -36,8 +36,16 @@ public class EventViewModel extends AndroidViewModel {
     }
 
     /**
-     * Get all Organisations from the repository. See class JavaDoc for information on LiveData.
+     * Get the repository associated with this view model.
      *
+     * @return the {@link EventRepository}
+     */
+    public EventRepository getRepository() {
+        return mRepository;
+    }
+
+    /**
+     * Get all Organisations from the repository. See class JavaDoc for information on LiveData.
      * @return a {@link LiveData} container for the list of Organisation objects.
      */
     public LiveData<List<Organisation>> getAllOrganisations() {
@@ -46,7 +54,6 @@ public class EventViewModel extends AndroidViewModel {
 
     /**
      * Get all Events from the repository.
-     *
      * @return a {@link LiveData} container for the list of Event objects
      */
     public LiveData<List<Event>> getAllEventsFromNow() {
@@ -55,7 +62,6 @@ public class EventViewModel extends AndroidViewModel {
 
     /**
      * Get all Events from the repository organised by the Organiser given by the id.
-     *
      * @param organiserId the Organiser's id to filter the Events by
      * @return a {@link LiveData} container for the list of Event objects
      */
@@ -65,20 +71,10 @@ public class EventViewModel extends AndroidViewModel {
 
     /**
      * Get a specific Event given its id from the repository.
-     *
      * @param id the unique identifier for the Event
      * @return a {@link LiveData} container for the Event
      */
     public LiveData<Event> getEvent(int id) {
         return mRepository.getEvent(id);
-    }
-
-    /**
-     * Inserts a new Event in to the repository.
-     *
-     * @param event the Event object to insert in to the repository
-     */
-    public void insertEvent(final Event event) {
-        mRepository.insertEvent(event);
     }
 }
