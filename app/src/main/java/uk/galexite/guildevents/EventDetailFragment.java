@@ -4,12 +4,14 @@ import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.CalendarContract;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -17,6 +19,10 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProviders;
 
 import com.google.android.material.appbar.CollapsingToolbarLayout;
+
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.Locale;
 
 import uk.galexite.guildevents.data.entity.Event;
 import uk.galexite.guildevents.data.viewmodel.EventViewModel;
@@ -63,6 +69,9 @@ public class EventDetailFragment extends Fragment {
     private TextView detailView;
     private TextView dateRangeView;
 
+    private final SimpleDateFormat simpleDateFormat =
+            new SimpleDateFormat("EEEE, d MMMM YYYY 'at' h:mm aa", Locale.ENGLISH);
+
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
@@ -92,23 +101,28 @@ public class EventDetailFragment extends Fragment {
         }
     }
 
+    /**
+     * Set the Event that this Fragment is detailing.
+     *
+     * @param event to display
+     */
     private void setEvent(@NonNull Event event) {
         mEvent = event;
 
         if (organiserView != null) {
-            organiserView.setText(event.getOrganiserName());
+            organiserView.setText(mEvent.getOrganiserName());
         }
 
         if (nameView != null) {
-            nameView.setText(event.getName());
+            nameView.setText(mEvent.getName());
         }
 
         if (detailView != null) {
-            detailView.setText(event.getDescription());
+            detailView.setText(mEvent.getDescription());
         }
 
         if (dateRangeView != null) {
-            dateRangeView.setText(mEvent.getFromDate());
+            dateRangeView.setText(simpleDateFormat.format(Timestamp.valueOf(mEvent.getFromDate())));
         }
     }
 
@@ -142,6 +156,26 @@ public class EventDetailFragment extends Fragment {
         return super.onOptionsItemSelected(item);
     }
 
+    /**
+     * Open the event in the user's calendar.
+     *
+     * @param view the button clicked upon
+     */
+    private void onAddToCalendarClick(View view) {
+        long startDate = Timestamp.valueOf(mEvent.getFromDate()).getTime();
+
+        Intent intent = new Intent(Intent.ACTION_INSERT)
+                .setData(CalendarContract.Events.CONTENT_URI)
+                .putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, startDate)
+                .putExtra(CalendarContract.Events.TITLE, mEvent.getName())
+                .putExtra(CalendarContract.Events.DESCRIPTION, mEvent.getDescription())
+                .putExtra(CalendarContract.Events.EVENT_LOCATION, mEvent.getLocation())
+                .putExtra(CalendarContract.Events.AVAILABILITY,
+                        CalendarContract.Events.AVAILABILITY_BUSY);
+
+        startActivity(intent);
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -152,9 +186,8 @@ public class EventDetailFragment extends Fragment {
         detailView = rootView.findViewById(R.id.event_description);
         dateRangeView = rootView.findViewById(R.id.date_range);
 
-//        // Associate the 'Open in Browser' button with its OnClickListener.
-//        rootView.findViewById(R.id.open_in_browser_button)
-//                .setOnClickListener(onOpenInBrowserClickListener);
+        Button addToCalendarButton = rootView.findViewById(R.id.add_to_calendar_button);
+        addToCalendarButton.setOnClickListener(this::onAddToCalendarClick);
 
         return rootView;
     }
