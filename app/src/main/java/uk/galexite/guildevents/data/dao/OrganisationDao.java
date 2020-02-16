@@ -3,6 +3,7 @@ package uk.galexite.guildevents.data.dao;
 import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Insert;
+import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 
 import java.util.List;
@@ -16,7 +17,7 @@ public interface OrganisationDao {
      * Add a new Organisation to the database.
      * @param organisation the Organisation to add
      */
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insert(Organisation organisation);
 
     /**
