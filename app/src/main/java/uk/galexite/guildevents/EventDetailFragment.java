@@ -50,6 +50,10 @@ public class EventDetailFragment extends Fragment {
      */
     private Event mEvent;
     /**
+     * The organiser's name text view for the event.
+     */
+    private TextView organiserView;
+    /**
      * The name text view for the event.
      */
     private TextView nameView;
@@ -90,6 +94,10 @@ public class EventDetailFragment extends Fragment {
 
     private void setEvent(@NonNull Event event) {
         mEvent = event;
+
+        if (organiserView != null) {
+            organiserView.setText(event.getOrganiserName());
+        }
 
         if (nameView != null) {
             nameView.setText(event.getName());
@@ -139,6 +147,7 @@ public class EventDetailFragment extends Fragment {
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.event_detail, container, false);
 
+        organiserView = rootView.findViewById(R.id.event_organiser_name);
         nameView = rootView.findViewById(R.id.event_name);
         detailView = rootView.findViewById(R.id.event_description);
         dateRangeView = rootView.findViewById(R.id.date_range);

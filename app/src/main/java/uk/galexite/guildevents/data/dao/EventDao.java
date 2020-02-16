@@ -24,7 +24,7 @@ public interface EventDao {
      * Get all Event objects stored in the database which have a start date in the future.
      * @return a {@link LiveData} container for the list of Event objects
      */
-    @Query("SELECT * from event WHERE fromDate > CURRENT_TIMESTAMP")
+    @Query("SELECT * from event WHERE fromDate > CURRENT_TIMESTAMP ORDER BY fromDate ASC")
     LiveData<List<Event>> getAllEventsFromNow();
 
     /**
@@ -33,7 +33,7 @@ public interface EventDao {
      * @param organiserId the Organiser's id to filter events by.
      * @return a {@link LiveData} container for the list of Event objects
      */
-    @Query("SELECT * from event WHERE organiserId = :organiserId")
+    @Query("SELECT * from event WHERE organiserId = :organiserId ORDER BY fromDate ASC")
     LiveData<List<Event>> getAllEventsOrganisedBy(int organiserId);
 
     /**
