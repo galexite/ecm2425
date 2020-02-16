@@ -33,7 +33,7 @@ public interface EventDao {
      * @param organiserId the Organiser's id to filter events by.
      * @return a {@link LiveData} container for the list of Event objects
      */
-    @Query("SELECT * from event WHERE organiserId = :organiserId ORDER BY fromDate ASC")
+    @Query("SELECT * from event WHERE organiserId = :organiserId AND fromDate > CURRENT_TIMESTAMP ORDER BY fromDate ASC")
     LiveData<List<Event>> getAllEventsOrganisedBy(int organiserId);
 
     /**
