@@ -30,17 +30,6 @@
                 tools:ignore="ContentDescription" />
 
             <TextView
-                android:id="@+id/event_organiser_name"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_margin="@dimen/text_margin"
-                android:textAppearance="@style/TextAppearance.AppCompat.Small"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@id/info_icon"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:text="This is an event organiser." />
-
-            <TextView
                 android:id="@+id/event_name"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -48,8 +37,20 @@
                 android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@id/info_icon"
-                app:layout_constraintTop_toBottomOf="@id/event_organiser_name"
+                app:layout_constraintTop_toTopOf="parent"
                 tools:text="This is an event title." />
+
+            <TextView
+                android:id="@+id/event_organiser_name"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="@dimen/text_margin"
+                android:layout_marginRight="@dimen/text_margin"
+                android:textAppearance="@style/TextAppearance.AppCompat.Small"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@id/info_icon"
+                app:layout_constraintTop_toBottomOf="@id/event_name"
+                tools:text="This is an event organiser." />
 
             <TextView
                 android:id="@+id/event_description"
@@ -60,7 +61,7 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@id/info_icon"
-                app:layout_constraintTop_toBottomOf="@id/event_name"
+                app:layout_constraintTop_toBottomOf="@id/event_organiser_name"
                 tools:text="This is an event description." />
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.cardview.widget.CardView>
@@ -101,7 +102,7 @@
                 tools:text="This is the start date." />
 
             <Button
-                android:id="@+id/button"
+                android:id="@+id/add_to_calendar_button"
                 style="@style/Widget.AppCompat.Button.Borderless.Colored"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
