@@ -6,4 +6,6 @@
     <string name="filter">Filter</string>
     <string name="preference_file_key" translatable="false">uk.galexite.guildevents.SHARED_PREFERENCES</string>
     <string name="preference_last_updated" translatable="false">last_updated</string>
+    <string name="share">Share</string>
+    <string name="find_on_map">Find on map</string>
 </resources>

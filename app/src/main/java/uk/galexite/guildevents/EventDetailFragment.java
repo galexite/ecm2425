@@ -1,6 +1,5 @@
 package uk.galexite.guildevents;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -15,10 +14,9 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProviders;
-
-import com.google.android.material.appbar.CollapsingToolbarLayout;
 
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
@@ -48,26 +46,33 @@ public class EventDetailFragment extends Fragment {
     @SuppressWarnings("FieldCanBeLocal")
     private EventViewModel mEventViewModel;
     /**
-     * The app bar layout.
-     */
-    private CollapsingToolbarLayout appBarLayout;
-    /**
      * The event this Fragment is detailing.
      */
     private Event mEvent;
     /**
      * The organiser's name text view for the event.
      */
-    private TextView organiserView;
+    private TextView mOrganiserView;
     /**
      * The name text view for the event.
      */
-    private TextView nameView;
+    private TextView mNameView;
     /**
      * The description text view for the event.
      */
-    private TextView detailView;
-    private TextView dateRangeView;
+    private TextView mDetailView;
+    /**
+     * The card view showing the event's location.
+     */
+    private CardView mLocationCardView;
+    /**
+     * Location for the event.
+     */
+    private TextView mLocationView;
+    /**
+     * Displays the date and time when the event is running.
+     */
+    private TextView mDateRangeView;
 
     private final SimpleDateFormat simpleDateFormat =
             new SimpleDateFormat("EEEE, d MMMM YYYY 'at' h:mm aa", Locale.ENGLISH);
@@ -93,11 +98,6 @@ public class EventDetailFragment extends Fragment {
             // to load content from a content provider.
             int id = getArguments().getInt(ARG_ITEM_ID);
             mEventViewModel.getEvent(id).observe(this, this::setEvent);
-
-            Activity activity = this.getActivity();
-            assert activity != null;
-
-            appBarLayout = activity.findViewById(R.id.toolbar_layout);
         }
     }
 
@@ -109,20 +109,30 @@ public class EventDetailFragment extends Fragment {
     private void setEvent(@NonNull Event event) {
         mEvent = event;
 
-        if (organiserView != null) {
-            organiserView.setText(mEvent.getOrganiserName());
+        if (mOrganiserView != null) {
+            mOrganiserView.setText(mEvent.getOrganiserName());
         }
 
-        if (nameView != null) {
-            nameView.setText(mEvent.getName());
+        if (mNameView != null) {
+            mNameView.setText(mEvent.getName());
         }
 
-        if (detailView != null) {
-            detailView.setText(mEvent.getDescription());
+        if (mDetailView != null) {
+            mDetailView.setText(mEvent.getDescription());
         }
 
-        if (dateRangeView != null) {
-            dateRangeView.setText(simpleDateFormat.format(Timestamp.valueOf(mEvent.getFromDate())));
+        if (mEvent.getLocation() == null) {
+            // If the location is null, there is no point in showing the location card!
+            mLocationCardView.setVisibility(View.INVISIBLE);
+        } else {
+            if (mLocationView != null) {
+                mLocationCardView.setVisibility(View.VISIBLE);
+                mLocationView.setText(mEvent.getLocation());
+            }
+        }
+
+        if (mDateRangeView != null) {
+            mDateRangeView.setText(simpleDateFormat.format(Timestamp.valueOf(mEvent.getFromDate())));
         }
     }
 
@@ -135,20 +145,17 @@ public class EventDetailFragment extends Fragment {
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == R.id.open_in_browser) { // Open this event in the browser
-            Uri uri = Uri.parse(mEvent.getUrl());
-
-            /* Sometimes, an event may link to an external source. We need to check and make sure
-               if the scheme is not already present before we go and add the Guild's domain name to
-               the URI. */
-            if (uri.getScheme() == null || uri.getScheme().isEmpty()) {
-                uri = uri.buildUpon()
-                        .scheme("http")
-                        .authority("www.exeterguild.org")
-                        .build();
-            }
-
             Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setData(uri);
+            intent.setData(getHttpUri());
+
+            startActivity(intent);
+            return true;
+        } else if (item.getItemId() == R.id.share) { // Share
+            Intent intent = new Intent(Intent.ACTION_SEND);
+
+            intent.putExtra(Intent.EXTRA_TEXT, "Hey! Check out this event: " + getHttpUri());
+            intent.setType("text/plain");
+
             startActivity(intent);
             return true;
         }
@@ -157,8 +164,45 @@ public class EventDetailFragment extends Fragment {
     }
 
     /**
-     * Open the event in the user's calendar.
+     * Get an HTTP Uri to the event to view in a web browser or share.
      *
+     * @return a Uri with an HTTP scheme for viewing the event on the Guild's website.
+     */
+    private Uri getHttpUri() {
+        Uri uri = Uri.parse(mEvent.getUrl());
+
+        /* Sometimes, an event may link to an external source. We need to check and make sure
+           if the scheme is not already present before we go and add the Guild's domain name to
+           the URI. */
+        if (uri.getScheme() == null || uri.getScheme().isEmpty()) {
+            uri = uri.buildUpon()
+                    .scheme("http")
+                    .authority("www.exeterguild.org")
+                    .build();
+        }
+
+        return uri;
+    }
+
+    /**
+     * Find the event's location on a map by creating an explicit intent to launch Google Maps to
+     * search for the location near Exeter.
+     *
+     * @param view the button clicked upon to find the event on the map
+     */
+    private void onFindOnMapClick(View view) {
+        // These geo coordinates are for Exeter; events are most likely to be held near here.
+        Uri intentUri = Uri.parse("geo:50.716667,-3.533333?q="
+                + mEvent.getLocation().replace(' ', '+'));
+        final Intent intent = new Intent(Intent.ACTION_VIEW, intentUri);
+
+        intent.setPackage("com.google.android.apps.maps");
+
+        startActivity(intent);
+    }
+
+    /**
+     * Open the event in the user's calendar.
      * @param view the button clicked upon
      */
     private void onAddToCalendarClick(View view) {
@@ -181,10 +225,17 @@ public class EventDetailFragment extends Fragment {
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.event_detail, container, false);
 
-        organiserView = rootView.findViewById(R.id.event_organiser_name);
-        nameView = rootView.findViewById(R.id.event_name);
-        detailView = rootView.findViewById(R.id.event_description);
-        dateRangeView = rootView.findViewById(R.id.date_range);
+        mOrganiserView = rootView.findViewById(R.id.event_organiser_name);
+        mNameView = rootView.findViewById(R.id.event_name);
+        mDetailView = rootView.findViewById(R.id.event_description);
+        mDateRangeView = rootView.findViewById(R.id.date_range);
+        mLocationCardView = rootView.findViewById(R.id.location_card);
+        mLocationView = rootView.findViewById(R.id.location);
+
+        // Associate the buttons with their appropriate onClick handlers
+
+        Button findOnMapButton = rootView.findViewById(R.id.find_on_map_button);
+        findOnMapButton.setOnClickListener(this::onFindOnMapClick);
 
         Button addToCalendarButton = rootView.findViewById(R.id.add_to_calendar_button);
         addToCalendarButton.setOnClickListener(this::onAddToCalendarClick);
