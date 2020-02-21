@@ -33,12 +33,15 @@ import uk.galexite.guildevents.data.viewmodel.EventViewModel;
 import uk.galexite.guildevents.network.UpdateDatabaseAsyncTask;
 
 /**
- * An activity representing a list of Items. This activity
- * has different presentations for handset and tablet-size devices. On
- * handsets, the activity presents a list of items, which when touched,
- * lead to a {@link EventDetailActivity} representing
- * item details. On tablets, the activity presents the list of items and
- * item details side-by-side using two vertical panes.
+ * The first activity the user sees when entering the app. It lists the Events in the database and
+ * runs the UpdateDatabaseAsyncTask to update this Event data in the database, displaying the data
+ * as it comes in.
+ *
+ * When an Event item is clicked, the EventDetailActivity is started if on a phone (and thus not in
+ * two-pane mode), or the EventDetailFragment is loaded and displayed if the device is wider than
+ * 900dp, and then the event's details are further displayed.
+ *
+ * Based on the automatically generated Master-Detail template in Android Studio.
  */
 public class EventListActivity extends AppCompatActivity {
 
