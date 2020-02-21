@@ -14,11 +14,32 @@ import uk.galexite.guildevents.data.entity.Event;
 import uk.galexite.guildevents.data.entity.Organisation;
 import uk.galexite.guildevents.data.repository.EventRepository;
 
+/**
+ * An AsyncTask to update the database if there is a newer JSON file on the server than the one that
+ * was previously seen. This is run every time the ListActivity starts as it uses barely any data
+ * when identifying when the database needs to be updated, and only updates the data when necessary.
+ * <p>
+ * If there is no internet connection, this silently fails and the existing data in the database is
+ * then used until next time the user opens the list activity on an Internet connection. This allows
+ * the user to use the app without issue when offline.
+ */
 public class UpdateDatabaseAsyncTask extends AsyncTask<EventRepository, Void, Void> {
 
+    /**
+     * The date of the file on the server last used to update the database. If the version on the
+     * server is newer than this update, this AsyncTask will update the database with the new data.
+     */
     private final Date lastUpdated;
+    /**
+     * This listener is run on the UI thread in onPostExecute(), to allow the activity to update its
+     * views to reflect that the update has completed (i.e. by removing the ProgressBar from view).
+     */
     private final OnUpdateDatabaseCompleteListener onUpdateDatabaseCompleteListener;
-    private Date updated = null; // the new update date
+    /**
+     * This is the new date which will replace lastUpdated, otherwise null if we did not find a
+     * newer JSON file on the server.
+     */
+    private Date updated = null;
 
     public UpdateDatabaseAsyncTask(Date lastUpdated,
                                    OnUpdateDatabaseCompleteListener listener) {
@@ -45,6 +66,9 @@ public class UpdateDatabaseAsyncTask extends AsyncTask<EventRepository, Void, Vo
                 return null;
             }
 
+            // Decode the JSON in to the Organisation Java class.
+            // The TypeToken class is needed to work around type erasure from putting the type in
+            // a list.
             Type organisationListType = new TypeToken<List<Organisation>>() {
             }.getType();
             final List<Organisation> organisations
@@ -65,6 +89,7 @@ public class UpdateDatabaseAsyncTask extends AsyncTask<EventRepository, Void, Vo
                 return null;
             }
 
+            // Decode the JSON in to Events.
             Type eventListType = new TypeToken<List<Event>>() {
             }.getType();
             final List<Event> events = gson.fromJson(eventsJson, eventListType);
@@ -87,6 +112,10 @@ public class UpdateDatabaseAsyncTask extends AsyncTask<EventRepository, Void, Vo
         onUpdateDatabaseCompleteListener.onUpdateDatabaseComplete(updated);
     }
 
+    /**
+     * This lambda runs on the UI thread (in onPostExecute) to allow the UI to update (i.e. by
+     * dropping the ProgressBar from view) in the Activity to reflect the task's completion.
+     */
     public interface OnUpdateDatabaseCompleteListener {
         void onUpdateDatabaseComplete(Date updated);
     }
