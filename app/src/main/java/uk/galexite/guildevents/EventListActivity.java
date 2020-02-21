@@ -19,6 +19,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModelProviders;
+import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.sql.Timestamp;
@@ -173,6 +174,8 @@ public class EventListActivity extends AppCompatActivity {
     private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
         mEventListAdapter = new EventListAdapter(this, mTwoPane);
         recyclerView.setAdapter(mEventListAdapter);
+        recyclerView.addItemDecoration(new DividerItemDecoration(
+                recyclerView.getContext(), DividerItemDecoration.VERTICAL));
         updateRecyclerView(null);
     }
 
@@ -205,6 +208,9 @@ public class EventListActivity extends AppCompatActivity {
      * The adapter is passed lists of {@link Event} objects to display with setEvent(List<Event>).
      */
     public static class EventListAdapter extends RecyclerView.Adapter<EventListAdapter.ViewHolder> {
+
+        private static final int EVENT_IS_NORMAL = 0;
+        private static final int EVENT_IS_DATE_HEADER = 1;
 
         private final SimpleDateFormat simpleDateFormat =
                 new SimpleDateFormat("EEEE, d MMMM, h:mm aa", Locale.ENGLISH);
@@ -245,6 +251,14 @@ public class EventListActivity extends AppCompatActivity {
             mParentActivity = parent;
             mTwoPane = twoPane;
         }
+
+        // TODO!
+
+//        @Override
+//        public int getItemViewType(int position) {
+//            return new LocalDateTime(mEvents.get(position).getFromDate()).truncatedTo(mEvents.get(position).getFromDate())
+//                    ? EVENT_IS_DATE_HEADER : EVENT_IS_NORMAL;
+//        }
 
         @NonNull
         @Override
