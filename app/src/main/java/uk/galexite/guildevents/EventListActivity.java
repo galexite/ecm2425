@@ -45,7 +45,7 @@ import uk.galexite.guildevents.network.UpdateDatabaseAsyncTask;
  */
 public class EventListActivity extends AppCompatActivity {
 
-    public static final String TAG = "EventListActivity";
+    private static final String TAG = "EventListActivity";
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet
      * device.

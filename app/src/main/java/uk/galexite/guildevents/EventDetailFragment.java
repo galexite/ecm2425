@@ -190,7 +190,7 @@ public class EventDetailFragment extends Fragment {
      *
      * @param view the button clicked upon to find the event on the map
      */
-    private void onFindOnMapClick(View view) {
+    private void onFindOnMapClick(@SuppressWarnings("unused") View view) {
         // These geo coordinates are for Exeter; events are most likely to be held near here.
         Uri intentUri = Uri.parse("geo:50.716667,-3.533333?q="
                 + mEvent.getLocation().replace(' ', '+'));
@@ -205,7 +205,7 @@ public class EventDetailFragment extends Fragment {
      * Open the event in the user's calendar.
      * @param view the button clicked upon
      */
-    private void onAddToCalendarClick(View view) {
+    private void onAddToCalendarClick(@SuppressWarnings("unused") View view) {
         long startDate = Timestamp.valueOf(mEvent.getFromDate()).getTime();
 
         Intent intent = new Intent(Intent.ACTION_INSERT)

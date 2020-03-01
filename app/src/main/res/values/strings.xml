@@ -3,7 +3,6 @@
     <string name="title_item_detail">Event</string>
     <string name="open_in_browser">Open in browser</string>
     <string name="add_to_calendar">Add to calendar</string>
-    <string name="filter">Filter</string>
     <string name="preference_file_key" translatable="false">uk.galexite.guildevents.SHARED_PREFERENCES</string>
     <string name="preference_last_updated" translatable="false">last_updated</string>
     <string name="share">Share</string>
