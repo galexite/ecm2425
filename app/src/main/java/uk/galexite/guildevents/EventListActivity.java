@@ -209,9 +209,6 @@ public class EventListActivity extends AppCompatActivity {
      */
     public static class EventListAdapter extends RecyclerView.Adapter<EventListAdapter.ViewHolder> {
 
-        private static final int EVENT_IS_NORMAL = 0;
-        private static final int EVENT_IS_DATE_HEADER = 1;
-
         private final SimpleDateFormat simpleDateFormat =
                 new SimpleDateFormat("EEEE, d MMMM, h:mm aa", Locale.ENGLISH);
 
@@ -252,14 +249,6 @@ public class EventListActivity extends AppCompatActivity {
             mTwoPane = twoPane;
         }
 
-        // TODO!
-
-//        @Override
-//        public int getItemViewType(int position) {
-//            return new LocalDateTime(mEvents.get(position).getFromDate()).truncatedTo(mEvents.get(position).getFromDate())
-//                    ? EVENT_IS_DATE_HEADER : EVENT_IS_NORMAL;
-//        }
-
         @NonNull
         @Override
         public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -297,7 +286,7 @@ public class EventListActivity extends AppCompatActivity {
             return mEvents == null ? 0 : mEvents.size();
         }
 
-        class ViewHolder extends RecyclerView.ViewHolder {
+        static class ViewHolder extends RecyclerView.ViewHolder {
             final TextView mEventOrganiserName;
             final TextView mEventName;
             final TextView mEventFromDate;
