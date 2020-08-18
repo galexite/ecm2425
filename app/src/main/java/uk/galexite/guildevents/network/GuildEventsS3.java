@@ -31,6 +31,9 @@ class GuildEventsS3 {
     private static final String BUCKET_HOST = "your-s3-bucket.amazonaws.com";
     private static final String BUCKET_URL = "https://your-s3-bucket-url.amazonaws.com/";
 
+    private static final String API_KEY = "";
+    private static final String ACCESS_KEY = "";
+
     // As the hash for an empty payload (i.e. no upload) is the same in SHA256, we can store the
     // hash here and not worry about generating it.
     private static final String EMPTY_PAYLOAD_HASH
