@@ -17,4 +17,9 @@
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
+    <style name="AppTheme.NoBackground" parent="AppTheme">
+        <item name="background">@null</item>
+        <item name="backgroundColor">@null</item>
+    </style>
+
 </resources>

@@ -297,7 +297,7 @@ public class EventListActivity extends AppCompatActivity {
             return mEvents == null ? 0 : mEvents.size();
         }
 
-        class ViewHolder extends RecyclerView.ViewHolder {
+        static class ViewHolder extends RecyclerView.ViewHolder {
             final TextView mEventOrganiserName;
             final TextView mEventName;
             final TextView mEventFromDate;
