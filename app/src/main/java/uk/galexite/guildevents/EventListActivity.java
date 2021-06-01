@@ -18,7 +18,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.lifecycle.LiveData;
-import androidx.lifecycle.ViewModelProviders;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -112,7 +112,7 @@ public class EventListActivity extends AppCompatActivity {
                 getString(R.string.preference_file_key), Context.MODE_PRIVATE);
 
         // Set up our view model, which mediates between the Activity and the database code.
-        mEventViewModel = ViewModelProviders.of(this).get(EventViewModel.class);
+        mEventViewModel = new ViewModelProvider(this).get(EventViewModel.class);
 
         // Update the database (if required)
         final Date lastUpdated = new Date(sharedPreferences.getLong(

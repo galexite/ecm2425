@@ -12,11 +12,16 @@ import static androidx.room.ForeignKey.CASCADE;
  * A concept of an Event that the Students Guild's societies and groups may host.
  */
 @Entity(tableName = "event",
-        indices = {@Index(value = "url", unique = true)},
+        indices = {
+                @Index(value = "url", unique = true),
+                @Index(value = "organiserId")
+        },
         foreignKeys = @ForeignKey(entity = Organisation.class,
                 parentColumns = "id",
                 childColumns = "organiserId",
-                onDelete = CASCADE))
+                onDelete = CASCADE
+        )
+)
 public class Event {
 
     /**

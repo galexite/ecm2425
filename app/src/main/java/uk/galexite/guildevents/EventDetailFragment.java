@@ -16,7 +16,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProviders;
+import androidx.lifecycle.ViewModelProvider;
 
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
@@ -75,7 +75,7 @@ public class EventDetailFragment extends Fragment {
     private TextView mDateRangeView;
 
     private final SimpleDateFormat simpleDateFormat =
-            new SimpleDateFormat("EEEE, d MMMM YYYY 'at' h:mm aa", Locale.ENGLISH);
+            new SimpleDateFormat("EEEE, d MMMM yyyy 'at' h:mm aa", Locale.ENGLISH);
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -88,7 +88,7 @@ public class EventDetailFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mEventViewModel = ViewModelProviders.of(this).get(EventViewModel.class);
+        mEventViewModel = new ViewModelProvider(this).get(EventViewModel.class);
 
         assert getArguments() != null;
 
