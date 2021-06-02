@@ -7,4 +7,6 @@
     <string name="preference_last_updated" translatable="false">last_updated</string>
     <string name="share">Share</string>
     <string name="find_on_map">Find on map</string>
+    <string name="filter_by_organisation">Filter by organisation</string>
+    <string name="all_organisers">All organisers</string>
 </resources>

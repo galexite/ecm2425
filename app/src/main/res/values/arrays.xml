@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string-array name="organisations">All organisers</string-array>
+    <string-array name="organisations">
+        <item>@string/all_organisers</item>
+    </string-array>
 </resources>

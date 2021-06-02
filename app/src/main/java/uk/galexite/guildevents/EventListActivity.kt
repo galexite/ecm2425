@@ -1,37 +1,26 @@
-package uk.galexite.guildevents;
+package uk.galexite.guildevents
 
-import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.os.Bundle;
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.ProgressBar;
-import android.widget.Spinner;
-import android.widget.TextView;
-
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.ViewModelProvider;
-import androidx.recyclerview.widget.DividerItemDecoration;
-import androidx.recyclerview.widget.RecyclerView;
-
-import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-
-import uk.galexite.guildevents.data.entity.Event;
-import uk.galexite.guildevents.data.entity.Organisation;
-import uk.galexite.guildevents.data.viewmodel.EventViewModel;
-import uk.galexite.guildevents.network.UpdateDatabaseAsyncTask;
+import android.content.Intent
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.AdapterView
+import android.widget.AdapterView.OnItemSelectedListener
+import android.widget.ArrayAdapter
+import android.widget.Spinner
+import android.widget.TextView
+import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
+import androidx.recyclerview.widget.*
+import uk.galexite.guildevents.data.entity.Event
+import uk.galexite.guildevents.data.entity.Organisation
+import uk.galexite.guildevents.data.viewmodel.EventViewModel
+import uk.galexite.guildevents.data.viewmodel.EventViewModelFactory
+import java.sql.Timestamp
+import java.text.SimpleDateFormat
+import java.util.*
 
 /**
  * The first activity the user sees when entering the app. It lists the Events in the database and
@@ -44,103 +33,86 @@ import uk.galexite.guildevents.network.UpdateDatabaseAsyncTask;
  *
  * Based on the automatically generated Master-Detail template in Android Studio.
  */
-public class EventListActivity extends AppCompatActivity {
-
-    private static final String TAG = "EventListActivity";
+class EventListActivity : AppCompatActivity() {
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet
      * device.
      */
-    private boolean mTwoPane;
+    private var twoPane = false
+
     /**
      * The view model.
      */
-    private EventViewModel mEventViewModel;
+    private val eventViewModel: EventViewModel by viewModels {
+        EventViewModelFactory((application as GuildEventsApplication).eventRepository)
+    }
+
     /**
-     * The adapter for the RecyclerView.
+     * The ListAdapter.
      */
-    private EventListAdapter mEventListAdapter;
+    private val eventListAdapter = EventListAdapter(this)
+
     /**
      * The current Organiser id for filtering the Event list.
      */
-    private Integer mOrganiserId;
+    private var organiserId: Int? = null
+
     /**
      * The 'filter by organisation' spinner's OnItemSelectedListener. Sets the filter for the event
      * list when a specific organisation is selected to filter by.
      */
-    private final AdapterView.OnItemSelectedListener onOrganisationFilterSelectedListener
-            = new AdapterView.OnItemSelectedListener() {
-        @Override
-        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-            if (position == 0) { // 'All organisations' was selected
-                // There should not be filter applied to the list of events, so clear it.
-                updateRecyclerView(null);
-                return;
+    private val onOrganisationFilterSelectedListener =
+        object : OnItemSelectedListener {
+            override fun onItemSelected(
+                parent: AdapterView<*>,
+                view: View,
+                position: Int,
+                id: Long
+            ) {
+                if (position == 0) { // 'All organisations' was selected
+                    // There should not be filter applied to the list of events, so clear it.
+                    updateRecyclerView(null)
+                    return
+                }
+
+                // The user selected an organisation, so filter the Events list for events which are
+                // organised by this Organisation they have selected.
+                val organisation = parent.adapter.getItem(position) as Organisation
+                updateRecyclerView(organisation.id)
             }
 
-            // The user selected an organisation, so filter the Events list for events which are
-            // organised by this Organisation they have selected.
-            Organisation organisation = (Organisation) parent.getAdapter().getItem(position);
-            updateRecyclerView(organisation.getId());
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+                // Don't do anything, the user may have clicked off the pop-up, so probably don't want
+                // to change the filter.
+            }
         }
 
-        @Override
-        public void onNothingSelected(AdapterView<?> parent) {
-            // Don't do anything, the user may have clicked off the pop-up, so probably don't want
-            // to change the filter.
-        }
-    };
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_event_list)
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_event_list);
+        val toolbar = findViewById<Toolbar>(R.id.toolbar)
+        setSupportActionBar(toolbar)
+        toolbar.title = title
 
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        toolbar.setTitle(getTitle());
-
-        if (findViewById(R.id.item_detail_container) != null) {
+        if (findViewById<View?>(R.id.item_detail_container) != null) {
             // The detail container view will be present only in the
             // large-screen layouts (res/values-w900dp).
             // If this view is present, then the
             // activity should be in two-pane mode.
-            mTwoPane = true;
+            twoPane = true
         }
 
-        SharedPreferences sharedPreferences = getSharedPreferences(
-                getString(R.string.preference_file_key), Context.MODE_PRIVATE);
-
-        // Set up our view model, which mediates between the Activity and the database code.
-        mEventViewModel = new ViewModelProvider(this).get(EventViewModel.class);
-
-        // Update the database (if required)
-        final Date lastUpdated = new Date(sharedPreferences.getLong(
-                getString(R.string.preference_last_updated), 0));
-        new UpdateDatabaseAsyncTask(lastUpdated, updated -> {
-            Log.d(TAG, "onCreate: UpdateDatabaseAsyncTask finished!");
-            if (updated != null) {
-                // Update our last modified time
-                sharedPreferences.edit()
-                        .putLong(getString(R.string.preference_last_updated), updated.getTime())
-                        .apply();
-
-                Log.d(TAG, "onCreate: successfully updated database: " + updated);
-            }
-
-            // Hide the progress bar
-            Log.d(TAG, "onCreate: hiding progress bar");
-            ProgressBar progressBar = findViewById(R.id.progress_bar);
-            progressBar.setVisibility(View.INVISIBLE);
-        }).execute(mEventViewModel.getRepository());
+        // TODO ???
+        (application as GuildEventsApplication).updateDatabase()
 
         // Populate the filter 'spinner' with the list of organisations in the database.
-        Spinner spinner = findViewById(R.id.spinner);
-        setupFilterByOrganisationSpinner(spinner);
+        val spinner = findViewById<Spinner>(R.id.spinner)
+        setupFilterByOrganisationSpinner(spinner)
 
         // Set up the recycler view with our database.
-        RecyclerView recyclerView = findViewById(R.id.item_list);
-        setupRecyclerView(recyclerView);
+        val recyclerView = findViewById<RecyclerView>(R.id.item_list)
+        setupRecyclerView(recyclerView)
     }
 
     /**
@@ -149,21 +121,17 @@ public class EventListActivity extends AppCompatActivity {
      *
      * @param spinner the Spinner view to populate with Organisation objects
      */
-    private void setupFilterByOrganisationSpinner(@NonNull Spinner spinner) {
-        // This ArrayAdapter will erase the types to object, such that you can insert any arbitrary
-        // type which has a toString() method. Helpful to add the 'All organisations' entry.
-        final ArrayAdapter<Object> adapter =
-                new ArrayAdapter<>(this, android.R.layout.simple_spinner_item);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+    private fun setupFilterByOrganisationSpinner(spinner: Spinner) {
+        val adapter = ArrayAdapter<String>(this, android.R.layout.simple_spinner_item)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinner.adapter = adapter
+        spinner.onItemSelectedListener = onOrganisationFilterSelectedListener
 
-        spinner.setAdapter(adapter);
-        spinner.setOnItemSelectedListener(onOrganisationFilterSelectedListener);
-
-        mEventViewModel.getAllOrganisations().observe(this, collection -> {
-            adapter.clear();
-            adapter.add("All organisers");
-            adapter.addAll(collection);
-        });
+        eventViewModel.allOrganisations.observe(this, { organisations: List<Organisation> ->
+            adapter.clear()
+            adapter.add(resources.getString(R.string.all_organisers))
+            adapter.addAll(organisations.map { o -> o.name })
+        })
     }
 
     /**
@@ -171,143 +139,130 @@ public class EventListActivity extends AppCompatActivity {
      *
      * @param recyclerView the RecyclerView to set up with the Events from the database
      */
-    private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
-        mEventListAdapter = new EventListAdapter(this, mTwoPane);
-        recyclerView.setAdapter(mEventListAdapter);
-        recyclerView.addItemDecoration(new DividerItemDecoration(
-                recyclerView.getContext(), DividerItemDecoration.VERTICAL));
-        updateRecyclerView(null);
+    private fun setupRecyclerView(recyclerView: RecyclerView) {
+        recyclerView.adapter = eventListAdapter
+        recyclerView.layoutManager = LinearLayoutManager(this)
+        recyclerView.addItemDecoration(
+            DividerItemDecoration(
+                recyclerView.context, DividerItemDecoration.VERTICAL
+            )
+        )
+
+        updateRecyclerView(null)
     }
 
     /**
      * Update the RecyclerView with events filtered by an organisation.
      *
      * @param organisationFilter the id of the Organisation to filter by, or null if there shall
-     *                           be no filter applied
+     * be no filter applied
      */
-    private void updateRecyclerView(Integer organisationFilter) {
+    private fun updateRecyclerView(organisationFilter: Int?) {
         // Remove any existing observers to stop them from adding Events to the RecyclerView.
-        if (mOrganiserId == null) {
-            mEventViewModel.getAllEventsFromNow().removeObservers(this);
+        if (organiserId == null) {
+            eventViewModel.allEventsFromNow.removeObservers(this)
         } else {
-            mEventViewModel.getAllEventsOrganisedBy(mOrganiserId).removeObservers(this);
+            eventViewModel.getAllEventsOrganisedBy(organiserId!!).removeObservers(this)
         }
 
         // Apply the new Organisation filter.
-        mOrganiserId = organisationFilter;
-        LiveData<List<Event>> liveData = mOrganiserId == null
-                ? mEventViewModel.getAllEventsFromNow()
-                : mEventViewModel.getAllEventsOrganisedBy(mOrganiserId);
-        liveData.observe(this, mEventListAdapter::setEvents);
+        organiserId = organisationFilter
+        val liveData =
+            if (organiserId == null) eventViewModel.allEventsFromNow else eventViewModel.getAllEventsOrganisedBy(
+                organiserId!!
+            )
+
+        liveData.observe(this, { events -> eventListAdapter.submitList(events) })
     }
 
     /**
      * The RecyclerView adapter that displays all the events (possibly filtered by the spinner) for
      * the user to browse through.
-     *
-     * The adapter is passed lists of {@link Event} objects to display with setEvent(List<Event>).
      */
-    public static class EventListAdapter extends RecyclerView.Adapter<EventListAdapter.ViewHolder> {
+    class EventListAdapter internal constructor(
+        private val parentActivity: EventListActivity
+    ) : ListAdapter<Event, EventListAdapter.EventViewHolder>(EventComparator()) {
 
-        private static final int EVENT_IS_NORMAL = 0;
-        private static final int EVENT_IS_DATE_HEADER = 1;
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): EventViewHolder {
+            return EventViewHolder.create(parent, parentActivity)
+        }
 
-        private final SimpleDateFormat simpleDateFormat =
-                new SimpleDateFormat("EEEE, d MMMM, h:mm aa", Locale.ENGLISH);
+        override fun onBindViewHolder(holder: EventViewHolder, position: Int) {
+            val event = getItem(position)
+            holder.bind(event)
+        }
 
-        private final EventListActivity mParentActivity;
-        private final boolean mTwoPane;
-        private final View.OnClickListener mOnClickListener = new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Event event = (Event) view.getTag();
-                if (mTwoPane) {
+        class EventViewHolder(view: View, parentActivity: EventListActivity) :
+            RecyclerView.ViewHolder(view) {
+            private val organiserNameView = view.findViewById<TextView>(R.id.event_organiser_name)
+            private val nameView = view.findViewById<TextView>(R.id.event_name)
+            private val fromDateView = view.findViewById<TextView>(R.id.event_from_date)
+
+            private val onClickListener = View.OnClickListener { view ->
+                val event = view.tag as Event
+
+                if (parentActivity.twoPane) {
                     // Build the EventFragment in to this Activity so the list of Events and the
                     // details (provided by this Fragment) can be displayed side by side.
-                    Bundle arguments = new Bundle();
-                    arguments.putInt(EventDetailFragment.ARG_ITEM_ID, event.getId());
-                    EventDetailFragment fragment = new EventDetailFragment();
-                    fragment.setArguments(arguments);
-                    fragment.setHasOptionsMenu(true);
-                    mParentActivity.getSupportFragmentManager().beginTransaction()
-                            .replace(R.id.item_detail_container, fragment)
-                            .commit();
+                    val arguments = Bundle()
+                    arguments.putInt(EventDetailFragment.ARG_ITEM_ID, event.id)
+
+                    val fragment = EventDetailFragment()
+                    fragment.arguments = arguments
+                    fragment.setHasOptionsMenu(true)
+                    parentActivity.supportFragmentManager.beginTransaction()
+                        .replace(R.id.item_detail_container, fragment)
+                        .commit()
                 } else {
                     // Open the EventDetailActivity on devices which are not large enough to show
                     // the list and the detail side by side.
-                    Context context = view.getContext();
-                    Intent intent = new Intent(context, EventDetailActivity.class);
-                    intent.putExtra(EventDetailFragment.ARG_ITEM_ID, event.getId());
-
-                    context.startActivity(intent);
+                    val context = view.context
+                    val intent = Intent(context, EventDetailActivity::class.java)
+                    intent.putExtra(EventDetailFragment.ARG_ITEM_ID, event.id)
+                    context.startActivity(intent)
                 }
             }
-        };
 
-        private List<Event> mEvents;
-
-        EventListAdapter(EventListActivity parent,
-                         boolean twoPane) {
-            mParentActivity = parent;
-            mTwoPane = twoPane;
-        }
-
-        // TODO!
-
-//        @Override
-//        public int getItemViewType(int position) {
-//            return new LocalDateTime(mEvents.get(position).getFromDate()).truncatedTo(mEvents.get(position).getFromDate())
-//                    ? EVENT_IS_DATE_HEADER : EVENT_IS_NORMAL;
-//        }
-
-        @NonNull
-        @Override
-        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View view = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.event_list_content, parent, false);
-            return new ViewHolder(view);
-        }
-
-        @Override
-        public void onBindViewHolder(final ViewHolder holder, int position) {
-            Event event = mEvents.get(position);
-
-            holder.mEventOrganiserName.setText(event.getOrganiserName());
-            holder.mEventName.setText(event.getName());
-            holder.mEventFromDate.setText(
-                    simpleDateFormat.format(Timestamp.valueOf(event.getFromDate()))
-            );
-
-            holder.itemView.setTag(event);
-            holder.itemView.setOnClickListener(mOnClickListener);
-        }
-
-        /**
-         * Set the list of events to display in the connected RecyclerView. Will cause the view to
-         * refresh to show this new information using notifyDataSetChanged().
-         * @param events the list of events
-         */
-        void setEvents(List<Event> events) {
-            mEvents = events;
-            notifyDataSetChanged();
-        }
-
-        @Override
-        public int getItemCount() {
-            return mEvents == null ? 0 : mEvents.size();
-        }
-
-        static class ViewHolder extends RecyclerView.ViewHolder {
-            final TextView mEventOrganiserName;
-            final TextView mEventName;
-            final TextView mEventFromDate;
-
-            ViewHolder(View view) {
-                super(view);
-                mEventOrganiserName = view.findViewById(R.id.event_organiser_name);
-                mEventName = view.findViewById(R.id.event_name);
-                mEventFromDate = view.findViewById(R.id.event_from_date);
+            fun bind(event: Event) {
+                organiserNameView.text = event.organiserName
+                nameView.text = event.name
+                fromDateView.text = simpleDateFormat.format(Timestamp.valueOf(event.fromDate))
+                itemView.tag = event
+                itemView.setOnClickListener(onClickListener)
             }
+
+            companion object {
+                private val simpleDateFormat by lazy {
+                    SimpleDateFormat(
+                        "EEEE, d MMMM, h:mm aa",
+                        Locale.ENGLISH
+                    )
+                }
+
+                fun create(
+                    parent: ViewGroup,
+                    parentActivity: EventListActivity
+                ): EventViewHolder {
+                    val view: View = LayoutInflater.from(parent.context)
+                        .inflate(R.layout.event_list_content, parent, false)
+
+                    return EventViewHolder(view, parentActivity)
+                }
+            }
+        }
+
+        class EventComparator : DiffUtil.ItemCallback<Event>() {
+            override fun areItemsTheSame(oldItem: Event, newItem: Event) = oldItem === newItem
+
+            // TODO: efficiency?
+            override fun areContentsTheSame(oldItem: Event, newItem: Event) =
+                oldItem.id == oldItem.id
+                        && oldItem.name == newItem.name
+                        && oldItem.fromDate == newItem.fromDate
+                        && oldItem.organiserId == newItem.organiserId
+                        && oldItem.description == newItem.description
+                        && oldItem.location == newItem.location
+                        && oldItem.url == newItem.url
         }
     }
 }

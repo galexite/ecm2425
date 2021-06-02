@@ -1,30 +1,34 @@
-package uk.galexite.guildevents.data.dao;
+package uk.galexite.guildevents.data.dao
 
-import androidx.lifecycle.LiveData;
-import androidx.room.Dao;
-import androidx.room.Insert;
-import androidx.room.OnConflictStrategy;
-import androidx.room.Query;
-
-import java.util.List;
-
-import uk.galexite.guildevents.data.entity.Organisation;
+import androidx.lifecycle.LiveData
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import kotlinx.coroutines.flow.Flow
+import uk.galexite.guildevents.data.entity.Organisation
 
 @Dao
-public interface OrganisationDao {
-
+interface OrganisationDao {
     /**
-     * Add a new Organisation to the database.
-     * @param organisation the Organisation to add
+     * Add a new [Organisation] to the database.
+     * @param organisation the [Organisation] to add
      */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void insert(Organisation organisation);
+    suspend fun insert(organisation: Organisation)
 
     /**
-     * Gets all the organisations stored in the database.
-     *
-     * @return a LiveData container containing a list of all the Organisation objects
+     * Add multiple [Organisation]s to the database.
+     * @param organisation the [Organisation] to add
      */
-    @Query("SELECT * FROM organisation")
-    LiveData<List<Organisation>> getAllOrganisations();
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(vararg organisations: Organisation)
+
+    /**
+     * Gets all the [Organisation]s stored in the database.
+     *
+     * @return a [Flow] container containing a list of all the [Organisation] objects
+     */
+    @get:Query("SELECT * FROM organisation")
+    val allOrganisations: Flow<List<Organisation>>
 }
